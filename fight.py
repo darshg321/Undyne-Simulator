@@ -255,9 +255,8 @@ def actbuttonupdates():
                 default = True
                 
 def itembuttonupdates():
-    global default, iteming, snowpiece1_text, snowpiece2_text, cinnabun1_text, cinnabun2_text
-    global last_keypress, top_item_list, btm_item_list
-    global snowpiece_consumed, cinnabun_consumed
+    global default, iteming, snowpiece1_text, snowpiece2_text, cinnabun1_text, cinnabun2_text, \
+            last_keypress, top_item_list, btm_item_list, snowpiece_consumed, cinnabun_consumed
 
     top_x = 150
     for top_item in top_item_list:
@@ -425,7 +424,9 @@ def check():
                 checked = False
 
 def snowpieceitemconsume():
-    global snowpiece_item_consume1, snowpiece_item_consume1_rect, snowpiece_item_consume2, snowpiece_item_consume2_rect, events, snowpiece_consumed, last_keypress, iteming
+    global snowpiece_item_consume1, snowpiece_item_consume1_rect, snowpiece_item_consume2, \
+            snowpiece_item_consume2_rect, events, snowpiece_consumed, last_keypress, iteming
+    
     screen.blit(snowpiece_item_consume1, snowpiece_item_consume1_rect)
     screen.blit(snowpiece_item_consume2, snowpiece_item_consume2_rect)
     last_keypress += 1
@@ -438,7 +439,9 @@ def snowpieceitemconsume():
                 snowpiece_consumed = False
 
 def cinnabunitemconsume():
-    global cinnabun_item_consume1, cinnabun_item_consume1_rect, cinnabun_item_consume2, cinnabun_item_consume2_rect, events, cinnabun_consumed, last_keypress, iteming
+    global cinnabun_item_consume1, cinnabun_item_consume1_rect, cinnabun_item_consume2, \
+            cinnabun_item_consume2_rect, events, cinnabun_consumed, last_keypress, iteming
+    
     screen.blit(cinnabun_item_consume1, cinnabun_item_consume1_rect)
     screen.blit(cinnabun_item_consume2, cinnabun_item_consume2_rect)
     last_keypress += 1
