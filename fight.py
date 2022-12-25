@@ -1,3 +1,9 @@
+# check how much damage attacks do
+# make fight screen
+# make challenge and plead stages (can do this with variable that increments by 1 for each stage and then random dialogue of that stage)
+# make spare stages with same thing
+
+
 import pygame, random, sys
 pygame.init()
 
@@ -17,7 +23,7 @@ class Button():
         self.active = active
     
     def update(self):
-        if self.active == True:
+        if self.active:
             screen.blit(self.hovering_image, self.pos)
         else:
             screen.blit(self.image, self.pos)
@@ -25,7 +31,7 @@ class Button():
 class TextButton():
     def __init__(self, string, antialiasing, color, hover_color, pos, active):
         self.string = string
-        self.text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50, bold=True)
+        self.text_font = text_font
         self.antialiasing = antialiasing
         self.color = color
         self.pos = pos
@@ -69,18 +75,40 @@ class Heart(pygame.sprite.Sprite):
     def healthbar(self):
         pygame.draw.rect(screen, (255, 0, 0), (575, 816, self.health_bar_length, 40))
         pygame.draw.rect(screen, (255, 255, 64), (575, 816, self.current_health / self.health_ratio, 40))
-        
-    def currenthealth(self):
-        return self.current_health
     
-    def maximumhealth(self):
-        return self.maximum_health
+class UndyneHealth():
+    def __init__(self, current_health, maximum_health):
+        self.current_health = current_health
+        self.maximum_health = maximum_health
+        self.health_bar_length = 200    
+        self.health_ratio = self.maximum_health / self.health_bar_length
+    
+    def damage(self, amount):
+        if self.current_health > 0:
+            self.current_health -= amount
+        if self.current_health <= 0:
+            self.current_health = 0
+            
+    def heal(self, amount):
+        if self.current_health < self.maximum_health:
+            self.current_health += amount
+        if self.current_health >= self.maximum_health:
+            self.current_health = self.maximum_health
+    
+    def healthbar(self):
+        pygame.draw.rect(screen, (255, 0, 0), (480, 565, self.health_bar_length, 40))
+        pygame.draw.rect(screen, (255, 255, 64), (480, 565, self.current_health / self.health_ratio, 40))
     
 default = True
 fighting = False
 acting = False
 iteming = False
 mercying = False
+last_keypress = 0
+snowpiece_consumed = False
+cinnabun_consumed = False
+checked = False
+fight_selected = False
 
 def buttonupdates():
     global default, fighting, acting, iteming, mercying
@@ -89,109 +117,137 @@ def buttonupdates():
     item_btn.update()
     mercy_btn.update()
     
-    if default == True:
+    if default:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     
-                    if fight_btn.active == True:
+                    if fight_btn.active:
                         act_btn.active = True
                         fight_btn.active = False
                     
-                    elif act_btn.active == True:
+                    elif act_btn.active:
                         item_btn.active = True
                         act_btn.active = False
                         
-                    elif item_btn.active == True:
+                    elif item_btn.active:
                         mercy_btn.active = True
                         item_btn.active = False
                         
-                    elif mercy_btn.active == True:
+                    elif mercy_btn.active:
                         fight_btn.active = True
                         mercy_btn.active = False
                 
                 if event.key == pygame.K_LEFT:
                     
-                    if fight_btn.active == True:
+                    if fight_btn.active:
                         mercy_btn.active = True
                         fight_btn.active = False
                     
-                    elif act_btn.active == True:
+                    elif act_btn.active:
                         fight_btn.active = True
                         act_btn.active = False
                         
-                    elif item_btn.active == True:
+                    elif item_btn.active:
                         act_btn.active = True
                         item_btn.active = False
                         
-                    elif mercy_btn.active == True:
+                    elif mercy_btn.active:
                         item_btn.active = True
                         mercy_btn.active = False
                 
                 if event.key == pygame.K_RETURN or event.key == pygame.K_z:
                     
-                    if fight_btn.active == True:
+                    if fight_btn.active:
                         default = False
                         fighting = True
                     
-                    elif act_btn.active == True:
+                    elif act_btn.active:
                         default = False
                         acting = True
                     
-                    elif item_btn.active == True:
+                    elif item_btn.active:
                         default = False
                         iteming = True
                         
-                    elif mercy_btn.active == True:
+                    elif mercy_btn.active:
                         default = False
                         mercying = True
 
 def fightbuttonupdates():
-    global default, fighting
+    global default, fighting, last_keypress, fight_selected, fighting
     undyne_text.update()
+    screen.blit(hp_text_undyne, hp_text_undyne_rect)
+    undyne_health.healthbar()
+    
+    health_ratio_text = text_font.render(f"{undyne_health.current_health} / {undyne_health.maximum_health}", False, WHITE)
+    health_ratio_text_rect = health_ratio_text.get_rect(topleft = (700, 550))
+    screen.blit(health_ratio_text, health_ratio_text_rect)
+    
+    last_keypress += 1
     
     for event in events:
         if event.type == pygame.KEYDOWN:
+            
+            if event.key == pygame.K_z and last_keypress >= 20:
+                fight_selected = True
+                last_keypress = 0
+                fight_btn.active = False
+                fighting = False
+                
             if event.key == pygame.K_x:
+                last_keypress = 0
                 undyne_text.active = True
                 fighting = False
                 default = True
 
 def actbuttonupdates():
-    global default, acting
+    global default, acting, checked, last_keypress
     check_text.update()
     plead_text.update()
     challenge_text.update()
+    last_keypress += 1
     
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
 
-                if check_text.active == True:
+                if check_text.active:
                     plead_text.active = True
                     check_text.active = False
                 
-                elif plead_text.active == True:
+                elif plead_text.active:
                     check_text.active = True
                     plead_text.active = False
 
-                elif challenge_text.active == True:
+                elif challenge_text.active:
                     pass
             
             if event.key == pygame.K_DOWN or event.key == pygame.K_UP:
                 
-                if check_text.active == True:
+                if check_text.active:
                     challenge_text.active = True
                     check_text.active = False
-                    
-                elif plead_text.active == True:
-                    pass
                 
-                elif challenge_text.active == True:
+                elif challenge_text.active:
                     check_text.active = True
                     challenge_text.active = False
                     
+            if event.key == pygame.K_z and last_keypress >= 20:
+                
+                if check_text.active:
+                    checked = True
+                    last_keypress = 0
+                    act_btn.active = False
+                    
+                if challenge_text.active:
+                    pass
+                
+                if plead_text.active:
+                    pass
+                    
             if event.key == pygame.K_x:
+                last_keypress = 0
                 check_text.active = True
                 challenge_text.active = False
                 plead_text.active = False
@@ -200,62 +256,138 @@ def actbuttonupdates():
                 
 def itembuttonupdates():
     global default, iteming, snowpiece1_text, snowpiece2_text, cinnabun1_text, cinnabun2_text
-    snowpiece1_text.update()
-    snowpiece2_text.update()
-    cinnabun1_text.update()
-    cinnabun2_text.update()
+    global last_keypress, top_item_list, btm_item_list
+    global snowpiece_consumed, cinnabun_consumed
+
+    top_x = 150
+    for top_item in top_item_list:
+        top_item.pos = (top_x, 550)
+        top_item.update()
+        top_x += 500
+        print(top_item_list)
+        
+    btm_x = 150
+    for btm_item in btm_item_list:
+        btm_item.pos = (btm_x, 650)
+        btm_item.update()
+        btm_x += 500
+        print(btm_item_list)
+    
+    last_keypress += 1
     
     for event in events:
         if event.type == pygame.KEYDOWN:
+            
             if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
-
-                if snowpiece1_text.active == True:
-                    snowpiece2_text.active = True
-                    snowpiece1_text.active = False
                 
-                elif snowpiece2_text.active == True:
-                    snowpiece1_text.active = True
-                    snowpiece2_text.active = False
+                if len(top_item_list) >= 2:
+                    if top_item_list[0].active:
+                        top_item_list[1].active = True
+                        top_item_list[0].active = False
+                
+                    elif top_item_list[1].active:
+                        top_item_list[0].active = True
+                        top_item_list[1].active = False
 
-                elif cinnabun1_text.active == True:
-                    cinnabun2_text.active = True
-                    cinnabun1_text.active = False
-                    
-                elif cinnabun2_text.active == True:
-                    cinnabun1_text.active = True
-                    cinnabun2_text.active = False
+                if len(btm_item_list) >= 2:
+                    if btm_item_list[0].active:
+                        btm_item_list[1].active = True
+                        btm_item_list[0].active = False
+                        
+                    elif btm_item_list[1].active:
+                        btm_item_list[0].active = True
+                        btm_item_list[1].active = False
             
             if event.key == pygame.K_DOWN or event.key == pygame.K_UP:
                 
-                if snowpiece1_text.active == True:
-                    cinnabun1_text.active = True
-                    snowpiece1_text.active = False
+                if len(btm_item_list) >= 1:
+                    if top_item_list[0].active:
+                        btm_item_list[0].active = True
+                        top_item_list[0].active = False
+                        
+                    elif btm_item_list[0].active:
+                        top_item_list[0].active = True
+                        btm_item_list[0].active = False
                 
-                elif snowpiece2_text.active == True:
-                    cinnabun2_text.active = True
-                    snowpiece2_text.active = False
+                if (len(top_item_list) and len(btm_item_list)) >= 2:
+                    if top_item_list[1].active:
+                        btm_item_list[1].active = True
+                        top_item_list[1].active = False
                     
-                elif cinnabun1_text.active == True:
-                    snowpiece1_text.active = True
-                    cinnabun1_text.active = False
+                    elif btm_item_list[1].active:
+                        top_item_list[1].active = True
+                        btm_item_list[1].active = False
                     
-                elif cinnabun2_text.active == True:
-                    snowpiece2_text.active = True
-                    cinnabun2_text.active = False
-                    
-            if event.key == pygame.K_z:
+            if event.key == pygame.K_z and last_keypress >= 20:
                 
-                if snowpiece1_text.active or snowpiece2_text.active:
-                    player.heal(45)
+                if len(top_item_list) >= 1:
+                    if top_item_list[0].active:
+                        
+                        if len(top_item_list) <= 1:
+                            top_item_list.pop(0)
+                        else:
+                            top_item_list[0] = top_item_list[1]
+                            
+                            if len(btm_item_list) <= 0:
+                                top_item_list.pop(1)
+                            else:
+                                top_item_list[1] = btm_item_list[0]
+                                
+                                if len(btm_item_list) <= 1:
+                                    btm_item_list.pop(0)
+                                else:
+                                    btm_item_list[0] = btm_item_list[1]
+                                    btm_item_list.pop(1)
+                        
+                        last_keypress = 0
+                        player.heal(45)
+                        snowpiece_consumed = True
+                        item_btn.active = False
                     
-                if cinnabun1_text.active or cinnabun2_text.active:
-                    player.heal(22)
+                if len(top_item_list) >= 2:
+                    if top_item_list[1].active and last_keypress >= 20:
+                        if len(top_item_list) >= 2:
+                            top_item_list[0] = top_item_list[1]
+                            top_item_list.pop(1)
+                        else:
+                            top_item_list.pop(0)
+                        last_keypress = 0
+                        player.heal(45)
+                        snowpiece_consumed = True
+                        item_btn.active = False
+                
+                if len(btm_item_list) >= 1:
+                    if btm_item_list[0].active and last_keypress >= 20:
+                        if len(btm_item_list) >= 2:
+                            btm_item_list[0] = btm_item_list[1]
+                            btm_item_list.pop(1)
+                        else:
+                            btm_item_list.pop(0)
+                        last_keypress = 0
+                        player.heal(22)
+                        cinnabun_consumed = True
+                        item_btn.active = False
+                    
+                if len(btm_item_list) >= 2:
+                    if btm_item_list[1].active and last_keypress >= 20:
+                        if len(btm_item_list) >= 2:
+                            btm_item_list[0] = btm_item_list[1]
+                            btm_item_list.pop(1)
+                        else:
+                            btm_item_list.pop(0)
+                        last_keypress = 0
+                        player.heal(22)
+                        cinnabun_consumed = True
+                        item_btn.active = False
                     
             if event.key == pygame.K_x:
-                snowpiece1_text.active = True
+                last_keypress = 0
+                snowpiece1_text.active = False
                 snowpiece2_text.active = False
                 cinnabun1_text.active = False
                 cinnabun2_text.active = False
+                top_item_list[0].active = True
+
                 iteming = False
                 default = True
 
@@ -270,11 +402,60 @@ def mercybuttonupdates():
                 mercying = False
                 default = True
 
+def attackscreen():
+    global events
+    
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z:
+                # add attack here
+                pass
+
+def check():
+    global undyne_check1, undyne_check1_rect, undyne_check2, undyne_check2_rect, events, checked, last_keypress, acting
+    screen.blit(undyne_check1, undyne_check1_rect)
+    screen.blit(undyne_check2, undyne_check2_rect)
+    last_keypress += 1
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z and last_keypress >= 20:
+                # actual fight here
+                last_keypress = 0
+                acting = False
+                checked = False
+
+def snowpieceitemconsume():
+    global snowpiece_item_consume1, snowpiece_item_consume1_rect, snowpiece_item_consume2, snowpiece_item_consume2_rect, events, snowpiece_consumed, last_keypress, iteming
+    screen.blit(snowpiece_item_consume1, snowpiece_item_consume1_rect)
+    screen.blit(snowpiece_item_consume2, snowpiece_item_consume2_rect)
+    last_keypress += 1
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z and last_keypress >= 20:
+                # actual fight here
+                last_keypress = 0
+                iteming = False
+                snowpiece_consumed = False
+
+def cinnabunitemconsume():
+    global cinnabun_item_consume1, cinnabun_item_consume1_rect, cinnabun_item_consume2, cinnabun_item_consume2_rect, events, cinnabun_consumed, last_keypress, iteming
+    screen.blit(cinnabun_item_consume1, cinnabun_item_consume1_rect)
+    screen.blit(cinnabun_item_consume2, cinnabun_item_consume2_rect)
+    last_keypress += 1
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z and last_keypress >= 20:
+                # call actual bossfight here
+                last_keypress = 0
+                iteming = False
+                cinnabun_consumed = False
+
 def boss_fight():
     pygame.display.set_caption('Fight!')
     global events
-    global player
+    global player, undyne_health
     player = Heart(76, 76)
+    undyne_health = UndyneHealth(1500, 1500)
     
     fight_img = pygame.image.load('assets\images\\fight.webp')
     fight_img = pygame.transform.scale(fight_img, (220, 84))
@@ -314,10 +495,39 @@ def boss_fight():
     kr_text = char_font.render("KR", False, WHITE)
     kr_text_rect = kr_text.get_rect(topleft = (800, 816))
     
+    global text_font
     text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50, bold=True)
+    
+    global hp_text_undyne, hp_text_undyne_rect
+    hp_text_undyne = text_font.render("HP", False, WHITE)
+    hp_text_undyne_rect = hp_text.get_rect(topleft = (400, 550))
     
     undyne_attacks = text_font.render("* Undyne Attacks!", False, WHITE)
     undyne_attacks_rect = undyne_attacks.get_rect(topleft = (60, 530))
+    
+    global snowpiece_item_consume1, snowpiece_item_consume1_rect
+    snowpiece_item_consume1 = text_font.render("* You ate the Snowman Piece.", False, WHITE)
+    snowpiece_item_consume1_rect = snowpiece_item_consume1.get_rect(topleft = (60, 530))
+    
+    global snowpiece_item_consume2, snowpiece_item_consume2_rect
+    snowpiece_item_consume2 = text_font.render("* You recovered 45 HP!", False, WHITE)
+    snowpiece_item_consume2_rect = snowpiece_item_consume2.get_rect(topleft = (60, 630))
+    
+    global cinnabun_item_consume1, cinnabun_item_consume1_rect
+    cinnabun_item_consume1 = text_font.render("* You ate the Cinnamon Bun.", False, WHITE)
+    cinnabun_item_consume1_rect = cinnabun_item_consume1.get_rect(topleft = (60, 530))
+    
+    global cinnabun_item_consume2, cinnabun_item_consume2_rect
+    cinnabun_item_consume2 = text_font.render("* You recovered 22 HP!", False, WHITE)
+    cinnabun_item_consume2_rect = cinnabun_item_consume2.get_rect(topleft = (60, 630))
+    
+    global undyne_check1, undyne_check1_rect
+    undyne_check1 = text_font.render("* UNDYNE 7 ATK 0 DEF", False, WHITE)
+    undyne_check1_rect = undyne_check1.get_rect(topleft = (60, 530))
+    
+    global undyne_check2, undyne_check2_rect
+    undyne_check2 = text_font.render("* The heroine that NEVER gives up.", False, WHITE)
+    undyne_check2_rect = undyne_check2.get_rect(topleft = (60, 630))
     
     undyne_image = pygame.image.load('assets\images\\undyne_battle.gif')
     undyne_image = pygame.transform.scale(undyne_image, (346, 478))
@@ -335,17 +545,22 @@ def boss_fight():
     snowpiece2_text = TextButton("* SnowPiece", False, WHITE, (255, 255, 64), (650, 550), False)
     cinnabun1_text = TextButton("* CinnaBun", False, WHITE, (255, 255, 64), (150, 650), False)
     cinnabun2_text = TextButton("* CinnaBun", False, WHITE, (255, 255, 64), (650, 650), False)
+    global top_item_list, btm_item_list
+    top_item_list = [snowpiece1_text, snowpiece2_text]
+    btm_item_list = [cinnabun1_text, cinnabun2_text]
     
     global spare_text
     spare_text = TextButton("* Spare", False, WHITE, (255, 255, 64), (150, 550), True)
     
     global fighting, acting, iteming, mercying
     
+    global snowpiece_consumed, cinnabun_consumed
+    
     while True:
         screen.fill((0, 0, 0))
         screen.blit(chara_text, chara_text_rect)
         screen.blit(lvl_text, lvl_text_rect)
-        if default == True:
+        if default:
             screen.blit(undyne_attacks, undyne_attacks_rect)
         screen.blit(hp_text, hp_text_rect)
         screen.blit(kr_text, kr_text_rect)
@@ -358,15 +573,29 @@ def boss_fight():
         pygame.draw.rect(screen, WHITE, pygame.Rect(30, 500, 1193, 300), 5)
 
         buttonupdates()
-        if fighting:
+        if fighting and fight_selected == False:
             fightbuttonupdates()
-        if acting:
+        if acting and checked == False:
             actbuttonupdates()
-        if iteming:
+        
+        if len(top_item_list) <= 0:
+            fight_btn.active = True
+            item_btn.active = False
+        if iteming and (snowpiece_consumed == False and cinnabun_consumed == False) and len(top_item_list):
             itembuttonupdates()
+        
         if mercying:
             mercybuttonupdates()
-
+        
+        if fight_selected:
+            attackscreen()
+        if checked:
+            check()
+        if snowpiece_consumed:
+            snowpieceitemconsume()
+        if cinnabun_consumed:
+            cinnabunitemconsume()
+        
         # player.draw(screen)
         player.update()
         
@@ -374,11 +603,6 @@ def boss_fight():
         for event in events:
             if event.type == pygame.QUIT:
                 sys.exit(0)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    player.heal(20)
-                if event.key == pygame.K_DOWN:
-                    player.damage(20)
                 
         pygame.display.update()
         FPS.tick(60)
