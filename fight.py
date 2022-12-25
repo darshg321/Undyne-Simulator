@@ -50,7 +50,7 @@ class TextButton():
 class Heart(pygame.sprite.Sprite):
     def __init__(self, current_health, maximum_health):
         super().__init__()
-        self.image = pygame.image.load('assets\images\\red_soul.webp')
+        self.image = pygame.image.load('assets\\images\\red_soul.webp')
         self.rect = self.image.get_rect()
         self.current_health = current_health
         self.maximum_health = maximum_health
@@ -457,22 +457,22 @@ def boss_fight():
     player = Heart(76, 76)
     undyne_health = UndyneHealth(1500, 1500)
     
-    fight_img = pygame.image.load('assets\images\\fight.webp')
+    fight_img = pygame.image.load('assets\\images\\fight.webp')
     fight_img = pygame.transform.scale(fight_img, (220, 84))
-    act_img = pygame.image.load('assets\images\\act.webp')
+    act_img = pygame.image.load('assets\\images\\act.webp')
     act_img = pygame.transform.scale(act_img, (220, 84))
-    item_img = pygame.image.load('assets\images\\item.webp')
+    item_img = pygame.image.load('assets\\images\\item.webp')
     item_img = pygame.transform.scale(item_img, (220, 84))
-    mercy_img = pygame.image.load('assets\images\\mercy.webp')
+    mercy_img = pygame.image.load('assets\\images\\mercy.webp')
     mercy_img = pygame.transform.scale(mercy_img, (220, 84))
     
-    active_fight_img = pygame.image.load('assets\images\\active_fight.png')
+    active_fight_img = pygame.image.load('assets\\images\\active_fight.png')
     active_fight_img = pygame.transform.scale(active_fight_img, (220, 84))
-    active_act_img = pygame.image.load('assets\images\\active_act.png')
+    active_act_img = pygame.image.load('assets\\images\\active_act.png')
     active_act_img = pygame.transform.scale(active_act_img, (220, 84))
-    active_item_img = pygame.image.load('assets\images\\active_item.png')
+    active_item_img = pygame.image.load('assets\\images\\active_item.png')
     active_item_img = pygame.transform.scale(active_item_img, (220, 84))
-    active_mercy_img = pygame.image.load('assets\images\\active_mercy.png')
+    active_mercy_img = pygame.image.load('assets\\images\\active_mercy.png')
     active_mercy_img = pygame.transform.scale(active_mercy_img, (220, 84))
     
     global fight_btn, act_btn, item_btn, mercy_btn
@@ -496,7 +496,7 @@ def boss_fight():
     kr_text_rect = kr_text.get_rect(topleft = (800, 816))
     
     global text_font
-    text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50, bold=True)
+    text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50)
     
     global hp_text_undyne, hp_text_undyne_rect
     hp_text_undyne = text_font.render("HP", False, WHITE)
@@ -529,7 +529,7 @@ def boss_fight():
     undyne_check2 = text_font.render("* The heroine that NEVER gives up.", False, WHITE)
     undyne_check2_rect = undyne_check2.get_rect(topleft = (60, 630))
     
-    undyne_image = pygame.image.load('assets\images\\undyne_battle.gif')
+    undyne_image = pygame.image.load('assets\\images\\undyne_battle.gif')
     undyne_image = pygame.transform.scale(undyne_image, (346, 478))
     
     global undyne_text
