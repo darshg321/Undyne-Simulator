@@ -40,10 +40,17 @@ target_img = pygame.image.load('assets\\images\\target.png')
 target_img = pygame.transform.scale(target_img, (1180, 280))
 
 strike1 = pygame.image.load('assets\\images\\strike1.png')
+strike1 = pygame.transform.scale(strike1, (10, 15))
 strike2 = pygame.image.load('assets\\images\\strike2.png')
+strike2 = pygame.transform.scale(strike2, (10, 55))
 strike3 = pygame.image.load('assets\\images\\strike3.png')
+strike4 = pygame.transform.scale(strike3, (15, 105))
 strike4 = pygame.image.load('assets\\images\\strike4.png')
+strike4 = pygame.transform.scale(strike4, (20, 160))
 strike5 = pygame.image.load('assets\\images\\strike5.png')
+strike5 = pygame.transform.scale(strike5, (35, 80))
+strike6 = pygame.image.load('assets\\images\\strike6.png')
+strike6 = pygame.transform.scale(strike6, (35, 30))
 
 undyne_image = pygame.image.load('assets\\images\\undyne_battle.gif')
 undyne_image = pygame.transform.scale(undyne_image, (346, 478))
@@ -74,6 +81,40 @@ undyne_check1_rect = undyne_check1.get_rect(topleft = (60, 530))
 
 undyne_check2 = text_font.render("* The heroine that NEVER gives up.", False, WHITE)
 undyne_check2_rect = undyne_check2.get_rect(topleft = (60, 630))
+
+mercy_fail_text = text_font.render("* You told Undyne you didn't want to fight.", False, WHITE)
+mercy_fail_text_rect = mercy_fail_text.get_rect(topleft = (60, 530))
+mercy_fail_text2 = text_font.render("* But nothing happened.", False, WHITE)
+mercy_fail_text2_rect = mercy_fail_text2.get_rect(topleft = (60, 630))
+
+mercy_success_text = text_font.render("* You told Undyne you didn't want to fight.", False, WHITE)
+mercy_success_text_rect = mercy_success_text.get_rect(topleft = (60, 530))
+mercy_success_text2 = text_font.render("* Her attacks slow down.", False, WHITE)
+mercy_success_text2_rect = mercy_success_text2.get_rect(topleft = (60, 630))
+
+plead_fail_text = text_font.render("* You told Undyne you didn't want to fight.", False, WHITE)
+plead_fail_text_rect = plead_fail_text.get_rect(topleft = (60, 530))
+plead_fail_text2 = text_font.render("* But nothing happened.", False, WHITE)
+plead_fail_text2_rect = plead_fail_text2.get_rect(topleft = (60, 630))
+
+plead_success_text = text_font.render("* You told Undyne you just want to be friends.", False, WHITE)
+plead_success_text_rect = plead_success_text.get_rect(topleft = (60, 530))
+plead_success_text2 = text_font.render("* She remembers someone...", False, WHITE)
+plead_success_text2_rect = plead_success_text2.get_rect(topleft = (60, 600))
+plead_success_text3 = text_font.render("* Her attacks became a little less extreme.", False, WHITE)
+plead_success_text3_rect = plead_success_text3.get_rect(topleft = (60, 670))
+
+undyne_challenge_text = text_font.render("* You tell UNDYNE her attacks are too easy.", False, WHITE)
+undyne_challenge_text_rect = undyne_challenge_text.get_rect(topleft = (60, 530))
+
+first_challenge_text = text_font.render("* The bullets get faster.", False, WHITE)
+first_challenge_text_rect = first_challenge_text.get_rect(topleft = (60, 630))
+
+second_challenge_text = text_font.render("* The bullets get unfair.", False, WHITE)
+second_challenge_text_rect = second_challenge_text.get_rect(topleft = (60, 630))
+
+third_challenge_text = text_font.render("* She doesn't care.", False, WHITE)
+third_challenge_text_rect = third_challenge_text.get_rect(topleft = (60, 630))
 
 class Button():
     def __init__(self, image, hovering_image, pos, active):
@@ -182,8 +223,6 @@ act_btn = Button(act_img, active_act_img, (363, 876), False)
 item_btn = Button(item_img, active_item_img, (683, 876), False)
 mercy_btn = Button(mercy_img, active_mercy_img, (1003, 876), False)
 
-
-
 def buttonupdates():
     global default, fighting, acting, iteming, mercying
     fight_btn.update()
@@ -236,18 +275,19 @@ def buttonupdates():
                         default = False
                         fighting = True
                         
-                    elif item_btn.active:
+                    elif act_btn.active:
                         default = False
-                        iteming = True
+                        acting = True
                         
                     elif mercy_btn.active:
                         default = False
                         mercying = True
                     
-                    if act_btn.active and len(top_item_list) > 0:
+                    elif item_btn.active and len(top_item_list) > 0:
                         default = False
-                        acting = True
-                    else:
+                        iteming = True
+                    elif item_btn.active and len(top_item_list) <= 0:
+                        default = True
                         fight_btn.active = True
                         item_btn.active = False
                     
@@ -281,7 +321,8 @@ def fightbuttonupdates():
                 default = True
 
 def actbuttonupdates():
-    global default, acting, checked, last_keypress
+    global default, acting, checked, last_keypress, challenged, \
+            pleaded, challenge_stage, plead_fail, plead_success
     check_text.update()
     plead_text.update()
     challenge_text.update()
@@ -298,9 +339,6 @@ def actbuttonupdates():
                 elif plead_text.active:
                     check_text.active = True
                     plead_text.active = False
-
-                elif challenge_text.active:
-                    pass
             
             if event.key == pygame.K_DOWN or event.key == pygame.K_UP:
                 
@@ -320,10 +358,20 @@ def actbuttonupdates():
                     act_btn.active = False
                     
                 if challenge_text.active:
-                    pass
+                    challenged = True
+                    last_keypress = 0
+                    if challenge_stage <= 3:
+                        challenge_stage += 1
+                    act_btn.active = False
                 
                 if plead_text.active:
-                    pass
+                    pleaded = True
+                    last_keypress = 0
+                    if randint(1, 2) == 2:
+                        plead_success = True
+                    else:
+                        plead_fail = True
+                    act_btn.active = False
                     
             if event.key == pygame.K_x:
                 last_keypress = 0
@@ -347,6 +395,7 @@ def itembuttonupdates():
     for btm_item in btm_item_list:
         btm_item.pos = (btm_x, 650)
         btm_item.update()
+        btm_x += 500
     
     last_keypress += 1
     
@@ -461,24 +510,40 @@ def itembuttonupdates():
                 snowpiece2_text.active = False
                 cinnabun1_text.active = False
                 cinnabun2_text.active = False
-                top_item_list[0].active = True
+                if len(top_item_list) > 0:
+                    top_item_list[0].active = True
 
                 iteming = False
                 default = True
 
 def mercybuttonupdates():
-    global default, mercying
+    global default, mercying, last_keypress, mercy_success, mercy_fail
     spare_text.update()
+    last_keypress += 1
     
     for event in events:
         if event.type == pygame.KEYDOWN:
+            
+            if event.key == pygame.K_z and last_keypress >= 10:
+                
+                if spare_text.active:
+                    last_keypress = 0
+                    # 5 is a random number
+                    if mercy_stage >= 5:
+                        mercy_btn.active = False
+                        mercy_success = True
+                    else:
+                        mercy_btn.active = False
+                        mercy_fail = True
+                        
             if event.key == pygame.K_x:
+                last_keypress = 0
                 spare_text.active = True
                 mercying = False
                 default = True
 
 def attackscreen():
-    global events, target_img, bar_x, attack_power, attacked, last_keypress, attack_damage
+    global events, target_img, bar_x, attack_power, attacked, last_keypress, attack_damage, strike_counter
     
     screen.blit(target_img, (40, 510))
     if bar_x < 1200:
@@ -502,11 +567,12 @@ def attackscreen():
         damage_text_rect = damage_text.get_rect(topleft = (580, 280))
         screen.blit(damage_text, damage_text_rect)
         undyne_health.health_ratio = undyne_health.maximum_health / undyne_health.health_bar_length
+        if strike_counter <= 22:
+            strike_animation()
+        else:
+            # actual fight here
+            pass
         
-        
-    print(attack_power)
-    print(f"lastkeypress: {last_keypress}")
-    
     for event in events:
         if event.type == pygame.KEYDOWN:
             
@@ -515,13 +581,24 @@ def attackscreen():
                 last_keypress = 0
                 attacked = True
                 attack_damage = attack_power * 5
-                
                 undyne_health.damage(attack_damage)
 
 def strike_animation():
-    global strike1, strike2, strike3, strike4, strike5
+    global strike1, strike2, strike3, strike4, strike5, strike6, strike_counter
+    strike_counter += 0.25
+    if strike_counter >= 2 and strike_counter <= 12:
+        screen.blit(strike1, (600, 220))
+    if strike_counter >= 4 and strike_counter <= 14:
+        screen.blit(strike2, (600, 240))
+    if strike_counter >= 6 and strike_counter <= 16:
+        screen.blit(strike3, (600, 260))
+    if strike_counter >= 8 and strike_counter <= 18:
+        screen.blit(strike4, (600, 300))
+    if strike_counter >= 10 and strike_counter <= 20:
+        screen.blit(strike5, (600, 370))
+    if strike_counter >= 12 and strike_counter <= 22:
+        screen.blit(strike6, (600, 380))
     
-
 def check():
     global undyne_check1, undyne_check1_rect, undyne_check2, undyne_check2_rect, events, checked, last_keypress, acting
     screen.blit(undyne_check1, undyne_check1_rect)
@@ -565,6 +642,86 @@ def cinnabunitemconsume():
                 iteming = False
                 cinnabun_consumed = False
 
+def mercyresult():
+    global mercy_success, mercy_fail, last_keypress, events, mercy_fail_text, \
+            mercy_fail_text_rect, mercy_success_text, mercy_success_text_rect, \
+            mercying, mercy_fail_text2, mercy_fail_text2_rect, mercy_success_text2, \
+            mercy_success_text2_rect
+            
+    if mercy_success:
+        # make attacks slower
+        screen.blit(mercy_success_text, mercy_success_text_rect)
+        screen.blit(mercy_success_text2, mercy_success_text2_rect)
+    if mercy_fail:
+        screen.blit(mercy_fail_text, mercy_fail_text_rect)
+        screen.blit(mercy_fail_text2, mercy_fail_text2_rect)
+        
+    
+    last_keypress += 1
+    
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z and last_keypress >= 20:
+                # actual fight here
+                last_keypress = 0
+                mercying = False
+                mercy_fail = False
+                mercy_success = False
+
+def challenge():
+    global events, challenged, last_keypress, acting, undyne_challenge_text, undyne_challenge_text_rect, \
+            first_challenge_text, first_challenge_text_rect, second_challenge_text, second_challenge_text_rect, \
+            third_challenge_text, third_challenge_text_rect, challenge_stage
+    
+    screen.blit(undyne_challenge_text, undyne_challenge_text_rect)
+    # make attacks faster
+    if challenge_stage == 1:
+        screen.blit(first_challenge_text, first_challenge_text_rect)
+    if challenge_stage == 2:
+        screen.blit(second_challenge_text, second_challenge_text_rect)
+    if challenge_stage == 3:
+        screen.blit(third_challenge_text, third_challenge_text_rect)
+    
+    last_keypress += 1
+    
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z and last_keypress >= 20:
+                # actual fight here
+                last_keypress = 0
+                acting = False
+                challenged = False
+    
+def plead():
+    global events, last_keypress, acting, pleaded, plead_success, plead_fail, \
+            plead_fail_text, plead_fail_text_rect, plead_success_text, \
+            plead_success_text_rect, plead_fail_text2, plead_fail_text2_rect, \
+            plead_success_text2, plead_fail_text2_rect, plead_success_text3, \
+            plead_success_text3_rect
+    
+    if plead_success:
+        screen.blit(plead_success_text, plead_success_text_rect)
+        screen.blit(plead_success_text2, plead_success_text2_rect)
+        screen.blit(plead_success_text3, plead_success_text3_rect)
+    
+    if plead_fail:
+        screen.blit(plead_fail_text, plead_fail_text_rect)
+        screen.blit(plead_fail_text2, plead_fail_text2_rect)
+    
+    last_keypress += 1
+    
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z and last_keypress >= 20:
+                # actual fight here
+                last_keypress = 0
+                acting = False
+                pleaded = False
+                plead_fail = False
+                plead_success = False
+    
+    
+    
 def boss_fight():
     pygame.display.set_caption('Choose.')
     global events
@@ -592,7 +749,9 @@ def boss_fight():
     
     global fighting, acting, iteming, mercying, undyne_image, text_font, \
             snowpiece_consumed, cinnabun_consumed, default, last_keypress, \
-            checked, fight_selected, bar_x, attack_power, attacked, attack_damage
+            checked, fight_selected, bar_x, attack_power, attacked, attack_damage, \
+            strike_counter, mercy_stage, mercy_success, mercy_fail, challenge_stage, \
+            challenged, pleaded, plead_fail, plead_success
     
     default = True
     fighting = False
@@ -608,6 +767,15 @@ def boss_fight():
     attack_power = 10
     attacked = False
     attack_damage = 0
+    strike_counter = 0
+    mercy_stage = 0
+    mercy_success = False
+    mercy_fail = False
+    challenge_stage = 0
+    challenged = False
+    pleaded = False
+    plead_fail = False
+    plead_success = False
     
     while True:
         screen.fill((0, 0, 0))
@@ -628,23 +796,29 @@ def boss_fight():
         buttonupdates()
         if fighting and fight_selected == False:
             fightbuttonupdates()
-        if acting and checked == False:
+        if acting and (checked == False and challenged == False and pleaded == False):
             actbuttonupdates()
         
         if iteming and (snowpiece_consumed == False and cinnabun_consumed == False):
             itembuttonupdates()
         
-        if mercying:
+        if mercying and (mercy_success == False and mercy_fail == False):
             mercybuttonupdates()
         
         if fight_selected:
             attackscreen()
         if checked:
             check()
+        if challenged:
+            challenge()
+        if pleaded:
+            plead()
         if snowpiece_consumed:
             snowpieceitemconsume()
         if cinnabun_consumed:
             cinnabunitemconsume()
+        if mercy_success or mercy_fail:
+            mercyresult()
         
         # player.draw(screen)
         player.update()

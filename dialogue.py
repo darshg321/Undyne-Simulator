@@ -33,14 +33,6 @@ def dialogue_gen(stage):
         dialogue_generated = late_list[num_generated]
         return dialogue_generated
     
-    if stage == "failed_plead":
-        dialogue_generated = "You told Undyne you didn't want to fight. But nothing happened."
-        return dialogue_generated
-    
-    if stage == "success_plead":
-        dialogue_generated = "You told Undyne you just want to be friends. She remembers someone... Her attacks became a little less extreme."
-        return dialogue_generated
-    
     if stage == "low_hp":
         num_generated = random.randint(1, 4)
         dialogue_generated = low_hp_list[num_generated]
