@@ -2,9 +2,12 @@
 # make fight screen
 # make challenge and plead stages (can do this with variable that increments by 1 for each stage and then random dialogue of that stage)
 # make spare stages with same thing
+# make undynehealth class into just undyne
 
-
-import pygame, random, sys
+import pygame
+from dialogue import dialogue_gen
+from random import randint
+from sys import exit
 pygame.init()
 
 FPS = pygame.time.Clock()
@@ -13,6 +16,64 @@ SCREEN_HEIGHT = 990
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 events = pygame.event.get()
 WHITE = (255, 255, 255)
+
+# assets
+fight_img = pygame.image.load('assets\\images\\fight.webp')
+fight_img = pygame.transform.scale(fight_img, (220, 84))
+act_img = pygame.image.load('assets\\images\\act.webp')
+act_img = pygame.transform.scale(act_img, (220, 84))
+item_img = pygame.image.load('assets\\images\\item.webp')
+item_img = pygame.transform.scale(item_img, (220, 84))
+mercy_img = pygame.image.load('assets\\images\\mercy.webp')
+mercy_img = pygame.transform.scale(mercy_img, (220, 84))
+
+active_fight_img = pygame.image.load('assets\\images\\active_fight.png')
+active_fight_img = pygame.transform.scale(active_fight_img, (220, 84))
+active_act_img = pygame.image.load('assets\\images\\active_act.png')
+active_act_img = pygame.transform.scale(active_act_img, (220, 84))
+active_item_img = pygame.image.load('assets\\images\\active_item.png')
+active_item_img = pygame.transform.scale(active_item_img, (220, 84))
+active_mercy_img = pygame.image.load('assets\\images\\active_mercy.png')
+active_mercy_img = pygame.transform.scale(active_mercy_img, (220, 84))
+
+target_img = pygame.image.load('assets\\images\\target.png')
+target_img = pygame.transform.scale(target_img, (1180, 280))
+
+strike1 = pygame.image.load('assets\\images\\strike1.png')
+strike2 = pygame.image.load('assets\\images\\strike2.png')
+strike3 = pygame.image.load('assets\\images\\strike3.png')
+strike4 = pygame.image.load('assets\\images\\strike4.png')
+strike5 = pygame.image.load('assets\\images\\strike5.png')
+
+undyne_image = pygame.image.load('assets\\images\\undyne_battle.gif')
+undyne_image = pygame.transform.scale(undyne_image, (346, 478))
+
+# text
+text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50)
+
+hp_text_undyne = text_font.render("HP", False, WHITE)
+hp_text_undyne_rect = hp_text_undyne.get_rect(topleft = (400, 550))
+
+undyne_attacks = text_font.render("* Undyne Attacks!", False, WHITE)
+undyne_attacks_rect = undyne_attacks.get_rect(topleft = (60, 530))
+
+snowpiece_item_consume1 = text_font.render("* You ate the Snowman Piece.", False, WHITE)
+snowpiece_item_consume1_rect = snowpiece_item_consume1.get_rect(topleft = (60, 530))
+
+snowpiece_item_consume2 = text_font.render("* You recovered 45 HP!", False, WHITE)
+snowpiece_item_consume2_rect = snowpiece_item_consume2.get_rect(topleft = (60, 630))
+
+cinnabun_item_consume1 = text_font.render("* You ate the Cinnamon Bun.", False, WHITE)
+cinnabun_item_consume1_rect = cinnabun_item_consume1.get_rect(topleft = (60, 530))
+
+cinnabun_item_consume2 = text_font.render("* You recovered 22 HP!", False, WHITE)
+cinnabun_item_consume2_rect = cinnabun_item_consume2.get_rect(topleft = (60, 630))
+
+undyne_check1 = text_font.render("* UNDYNE 7 ATK 0 DEF", False, WHITE)
+undyne_check1_rect = undyne_check1.get_rect(topleft = (60, 530))
+
+undyne_check2 = text_font.render("* The heroine that NEVER gives up.", False, WHITE)
+undyne_check2_rect = undyne_check2.get_rect(topleft = (60, 630))
 
 class Button():
     def __init__(self, image, hovering_image, pos, active):
@@ -95,20 +156,33 @@ class UndyneHealth():
         if self.current_health >= self.maximum_health:
             self.current_health = self.maximum_health
     
-    def healthbar(self):
-        pygame.draw.rect(screen, (255, 0, 0), (480, 565, self.health_bar_length, 40))
-        pygame.draw.rect(screen, (255, 255, 64), (480, 565, self.current_health / self.health_ratio, 40))
+    def healthbar(self, pos_x, pos_y, height):
+        pygame.draw.rect(screen, (255, 0, 0), (pos_x, pos_y, self.health_bar_length, height))
+        pygame.draw.rect(screen, (255, 255, 64), (pos_x, pos_y, self.current_health / self.health_ratio, height))
     
-default = True
-fighting = False
-acting = False
-iteming = False
-mercying = False
-last_keypress = 0
-snowpiece_consumed = False
-cinnabun_consumed = False
-checked = False
-fight_selected = False
+# objects
+
+damage_font = pygame.font.Font("assets\\fonts\\hachicro.ttf", 80)
+
+undyne_text = TextButton("* Undyne", False, WHITE, (255, 255, 64), (150, 550), True)
+
+check_text = TextButton("* Check", False, WHITE, (255, 255, 64), (150, 550), True)
+plead_text = TextButton("* Plead", False, WHITE, (255, 255, 64), (650, 550), False)
+challenge_text = TextButton("* Challenge", False, WHITE, (255, 255, 64), (150, 650), False)
+
+spare_text = TextButton("* Spare", False, WHITE, (255, 255, 64), (150, 550), True)
+
+snowpiece1_text = TextButton("* SnowPiece", False, WHITE, (255, 255, 64), (150, 550), True)
+snowpiece2_text = TextButton("* SnowPiece", False, WHITE, (255, 255, 64), (650, 550), False)
+cinnabun1_text = TextButton("* CinnaBun", False, WHITE, (255, 255, 64), (150, 650), False)
+cinnabun2_text = TextButton("* CinnaBun", False, WHITE, (255, 255, 64), (650, 650), False)
+
+fight_btn = Button(fight_img, active_fight_img, (30, 876), True)
+act_btn = Button(act_img, active_act_img, (363, 876), False)
+item_btn = Button(item_img, active_item_img, (683, 876), False)
+mercy_btn = Button(mercy_img, active_mercy_img, (1003, 876), False)
+
+
 
 def buttonupdates():
     global default, fighting, acting, iteming, mercying
@@ -161,11 +235,7 @@ def buttonupdates():
                     if fight_btn.active:
                         default = False
                         fighting = True
-                    
-                    elif act_btn.active:
-                        default = False
-                        acting = True
-                    
+                        
                     elif item_btn.active:
                         default = False
                         iteming = True
@@ -173,12 +243,21 @@ def buttonupdates():
                     elif mercy_btn.active:
                         default = False
                         mercying = True
-
+                    
+                    if act_btn.active and len(top_item_list) > 0:
+                        default = False
+                        acting = True
+                    else:
+                        fight_btn.active = True
+                        item_btn.active = False
+                    
 def fightbuttonupdates():
     global default, fighting, last_keypress, fight_selected, fighting
     undyne_text.update()
     screen.blit(hp_text_undyne, hp_text_undyne_rect)
-    undyne_health.healthbar()
+    undyne_health.health_bar_length = 200
+    undyne_health.healthbar(480, 565, 40)
+    undyne_health.health_ratio = undyne_health.maximum_health / undyne_health.health_bar_length
     
     health_ratio_text = text_font.render(f"{undyne_health.current_health} / {undyne_health.maximum_health}", False, WHITE)
     health_ratio_text_rect = health_ratio_text.get_rect(topleft = (700, 550))
@@ -263,14 +342,11 @@ def itembuttonupdates():
         top_item.pos = (top_x, 550)
         top_item.update()
         top_x += 500
-        print(top_item_list)
         
     btm_x = 150
     for btm_item in btm_item_list:
         btm_item.pos = (btm_x, 650)
         btm_item.update()
-        btm_x += 500
-        print(btm_item_list)
     
     last_keypress += 1
     
@@ -402,13 +478,49 @@ def mercybuttonupdates():
                 default = True
 
 def attackscreen():
-    global events
+    global events, target_img, bar_x, attack_power, attacked, last_keypress, attack_damage
+    
+    screen.blit(target_img, (40, 510))
+    if bar_x < 1200:
+        pygame.draw.rect(screen, WHITE, pygame.Rect(bar_x, 510, 20, 280))
+        
+        if attacked == False:
+            if bar_x <= 600:
+                attack_power += 1
+            else:
+                attack_power -= 1
+    
+    if attacked == False:
+        bar_x += 15
+        last_keypress += 1
+
+    if attacked:
+        undyne_health.health_bar_length = 400
+        undyne_health.healthbar(423, 400, 40)
+        pygame.draw.rect(screen, (196, 47, 51), pygame.Rect(570, 270, 250, 90), 0, 3)
+        damage_text = damage_font.render(f"{attack_damage}", False, (0, 0, 0))
+        damage_text_rect = damage_text.get_rect(topleft = (580, 280))
+        screen.blit(damage_text, damage_text_rect)
+        undyne_health.health_ratio = undyne_health.maximum_health / undyne_health.health_bar_length
+        
+        
+    print(attack_power)
+    print(f"lastkeypress: {last_keypress}")
     
     for event in events:
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_z:
-                # add attack here
-                pass
+            
+            if event.key == pygame.K_z and last_keypress >= 2:
+                
+                last_keypress = 0
+                attacked = True
+                attack_damage = attack_power * 5
+                
+                undyne_health.damage(attack_damage)
+
+def strike_animation():
+    global strike1, strike2, strike3, strike4, strike5
+    
 
 def check():
     global undyne_check1, undyne_check1_rect, undyne_check2, undyne_check2_rect, events, checked, last_keypress, acting
@@ -454,35 +566,11 @@ def cinnabunitemconsume():
                 cinnabun_consumed = False
 
 def boss_fight():
-    pygame.display.set_caption('Fight!')
+    pygame.display.set_caption('Choose.')
     global events
     global player, undyne_health
     player = Heart(76, 76)
     undyne_health = UndyneHealth(1500, 1500)
-    
-    fight_img = pygame.image.load('assets\\images\\fight.webp')
-    fight_img = pygame.transform.scale(fight_img, (220, 84))
-    act_img = pygame.image.load('assets\\images\\act.webp')
-    act_img = pygame.transform.scale(act_img, (220, 84))
-    item_img = pygame.image.load('assets\\images\\item.webp')
-    item_img = pygame.transform.scale(item_img, (220, 84))
-    mercy_img = pygame.image.load('assets\\images\\mercy.webp')
-    mercy_img = pygame.transform.scale(mercy_img, (220, 84))
-    
-    active_fight_img = pygame.image.load('assets\\images\\active_fight.png')
-    active_fight_img = pygame.transform.scale(active_fight_img, (220, 84))
-    active_act_img = pygame.image.load('assets\\images\\active_act.png')
-    active_act_img = pygame.transform.scale(active_act_img, (220, 84))
-    active_item_img = pygame.image.load('assets\\images\\active_item.png')
-    active_item_img = pygame.transform.scale(active_item_img, (220, 84))
-    active_mercy_img = pygame.image.load('assets\\images\\active_mercy.png')
-    active_mercy_img = pygame.transform.scale(active_mercy_img, (220, 84))
-    
-    global fight_btn, act_btn, item_btn, mercy_btn
-    fight_btn = Button(fight_img, active_fight_img, (30, 876), True)
-    act_btn = Button(act_img, active_act_img, (363, 876), False)
-    item_btn = Button(item_img, active_item_img, (683, 876), False)
-    mercy_btn = Button(mercy_img, active_mercy_img, (1003, 876), False)
     
     char_font = pygame.font.Font("assets\\fonts\\Determination Mono.otf", 40)
     
@@ -498,66 +586,28 @@ def boss_fight():
     kr_text = char_font.render("KR", False, WHITE)
     kr_text_rect = kr_text.get_rect(topleft = (800, 816))
     
-    global text_font
-    text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50)
-    
-    global hp_text_undyne, hp_text_undyne_rect
-    hp_text_undyne = text_font.render("HP", False, WHITE)
-    hp_text_undyne_rect = hp_text.get_rect(topleft = (400, 550))
-    
-    undyne_attacks = text_font.render("* Undyne Attacks!", False, WHITE)
-    undyne_attacks_rect = undyne_attacks.get_rect(topleft = (60, 530))
-    
-    global snowpiece_item_consume1, snowpiece_item_consume1_rect
-    snowpiece_item_consume1 = text_font.render("* You ate the Snowman Piece.", False, WHITE)
-    snowpiece_item_consume1_rect = snowpiece_item_consume1.get_rect(topleft = (60, 530))
-    
-    global snowpiece_item_consume2, snowpiece_item_consume2_rect
-    snowpiece_item_consume2 = text_font.render("* You recovered 45 HP!", False, WHITE)
-    snowpiece_item_consume2_rect = snowpiece_item_consume2.get_rect(topleft = (60, 630))
-    
-    global cinnabun_item_consume1, cinnabun_item_consume1_rect
-    cinnabun_item_consume1 = text_font.render("* You ate the Cinnamon Bun.", False, WHITE)
-    cinnabun_item_consume1_rect = cinnabun_item_consume1.get_rect(topleft = (60, 530))
-    
-    global cinnabun_item_consume2, cinnabun_item_consume2_rect
-    cinnabun_item_consume2 = text_font.render("* You recovered 22 HP!", False, WHITE)
-    cinnabun_item_consume2_rect = cinnabun_item_consume2.get_rect(topleft = (60, 630))
-    
-    global undyne_check1, undyne_check1_rect
-    undyne_check1 = text_font.render("* UNDYNE 7 ATK 0 DEF", False, WHITE)
-    undyne_check1_rect = undyne_check1.get_rect(topleft = (60, 530))
-    
-    global undyne_check2, undyne_check2_rect
-    undyne_check2 = text_font.render("* The heroine that NEVER gives up.", False, WHITE)
-    undyne_check2_rect = undyne_check2.get_rect(topleft = (60, 630))
-    
-    undyne_image = pygame.image.load('assets\\images\\undyne_battle.gif')
-    undyne_image = pygame.transform.scale(undyne_image, (346, 478))
-    
-    global undyne_text
-    undyne_text = TextButton("* Undyne", False, WHITE, (255, 255, 64), (150, 550), True)
-    
-    global check_text, plead_text, challenge_text
-    check_text = TextButton("* Check", False, WHITE, (255, 255, 64), (150, 550), True)
-    plead_text = TextButton("* Plead", False, WHITE, (255, 255, 64), (650, 550), False)
-    challenge_text = TextButton("* Challenge", False, WHITE, (255, 255, 64), (150, 650), False)
-    
-    global snowpiece1_text, snowpiece2_text, cinnabun1_text, cinnabun2_text
-    snowpiece1_text = TextButton("* SnowPiece", False, WHITE, (255, 255, 64), (150, 550), True)
-    snowpiece2_text = TextButton("* SnowPiece", False, WHITE, (255, 255, 64), (650, 550), False)
-    cinnabun1_text = TextButton("* CinnaBun", False, WHITE, (255, 255, 64), (150, 650), False)
-    cinnabun2_text = TextButton("* CinnaBun", False, WHITE, (255, 255, 64), (650, 650), False)
     global top_item_list, btm_item_list
     top_item_list = [snowpiece1_text, snowpiece2_text]
     btm_item_list = [cinnabun1_text, cinnabun2_text]
     
-    global spare_text
-    spare_text = TextButton("* Spare", False, WHITE, (255, 255, 64), (150, 550), True)
+    global fighting, acting, iteming, mercying, undyne_image, text_font, \
+            snowpiece_consumed, cinnabun_consumed, default, last_keypress, \
+            checked, fight_selected, bar_x, attack_power, attacked, attack_damage
     
-    global fighting, acting, iteming, mercying
-    
-    global snowpiece_consumed, cinnabun_consumed
+    default = True
+    fighting = False
+    acting = False
+    iteming = False
+    mercying = False
+    last_keypress = 0
+    snowpiece_consumed = False
+    cinnabun_consumed = False
+    checked = False
+    fight_selected = False
+    bar_x = 30
+    attack_power = 10
+    attacked = False
+    attack_damage = 0
     
     while True:
         screen.fill((0, 0, 0))
@@ -581,10 +631,7 @@ def boss_fight():
         if acting and checked == False:
             actbuttonupdates()
         
-        if len(top_item_list) <= 0:
-            fight_btn.active = True
-            item_btn.active = False
-        if iteming and (snowpiece_consumed == False and cinnabun_consumed == False) and len(top_item_list):
+        if iteming and (snowpiece_consumed == False and cinnabun_consumed == False):
             itembuttonupdates()
         
         if mercying:
@@ -605,7 +652,7 @@ def boss_fight():
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                sys.exit(0)
+                exit(0)
                 
         pygame.display.update()
         FPS.tick(60)
