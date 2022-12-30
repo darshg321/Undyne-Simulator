@@ -1,39 +1,36 @@
 import random
 
-neutral_list = ["Undyne flips her spear impatiently.",
-"Undyne points heroically towards the sky.",
-"Undyne flashes a menacing smile.",
-"Undyne draws her finger across her neck.",
-"Undyne bounces impatiently.",
-"Undyne suplexes a large boulder, just because she can.",
-"Undyne thinks of her friends and pounds the ground with her fists.",
-"Undyne holds her fist in front of her and shakes her head.",
-"Undyne towers threateningly.",
-"Smells like sushi." ]
+neutral_list = ["* Undyne flips her spear impatiently.",
+"* Undyne points heroically towards the sky.",
+"* Undyne flashes a menacing smile.",
+"* Undyne draws her finger across her neck.",
+"* Undyne bounces impatiently.",
+"* Undyne towers threateningly.",
+"* Smells like sushi." ]
 
-late_list = ["Smells like angry fish.",
-"Undyne is hyperventilating.",
-"Undyne is smashing spears on the ground.",
-"Undyne's eye is twitching involuntarily.",
-"Undyne's eyes dart around to see if this is a prank."]
+late_list = ["* Smells like angry fish.",
+"* Undyne is hyperventilating.",
+"* Undyne is smashing spears on the ground.",
+"* Undyne's eye is twitching involuntarily.",
+"* Undyne's eyes dart around to see if this is a prank."]
 
-low_hp_list = ["Water rushes around you.",
-"Flower pollen drifts in front of you.",
-"The wind is howling...",
-"The spears pause for a moment."]
+low_hp_list = ["* Water rushes around you.",
+"* Flower pollen drifts in front of you.",
+"* The wind is howling...",
+"* The spears pause for a moment."]
 
 def dialogue_gen(stage):
     if stage == "neutral":
-        num_generated = random.randint(1, 10)
+        num_generated = random.randint(0, 6)
         dialogue_generated = neutral_list[num_generated]
         return dialogue_generated
     
     if stage == "late":
-        num_generated = random.randint(1, 5)
+        num_generated = random.randint(0, 4)
         dialogue_generated = late_list[num_generated]
         return dialogue_generated
     
-    if stage == "low_hp":
-        num_generated = random.randint(1, 4)
+    if stage == "low hp":
+        num_generated = random.randint(0, 3)
         dialogue_generated = low_hp_list[num_generated]
         return dialogue_generated

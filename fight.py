@@ -3,6 +3,8 @@
 # make challenge and plead stages (can do this with variable that increments by 1 for each stage and then random dialogue of that stage)
 # make spare stages with same thing
 # make undynehealth class into just undyne
+# make undyne attacks "less extreme" by changing the delay between bullets / bullet speed
+# change invincibility to 0 after attacks are done
 
 import pygame
 from dialogue import dialogue_gen
@@ -54,6 +56,25 @@ strike6 = pygame.transform.scale(strike6, (35, 30))
 
 undyne_image = pygame.image.load('assets\\images\\undyne_battle.gif')
 undyne_image = pygame.transform.scale(undyne_image, (346, 478))
+
+undyne_image_dark = pygame.image.load('assets\\images\\undyne_battle_dark.png')
+undyne_image_dark = pygame.transform.scale(undyne_image_dark, (346, 478))
+
+green_soul = pygame.image.load('assets\\images\\green_soul.webp')
+green_soul = pygame.transform.scale(green_soul, (24, 24))
+
+red_soul = pygame.image.load('assets\\images\\green_soul.webp')
+red_soul = pygame.transform.scale(red_soul, (24, 24))
+
+bullet_1 = pygame.image.load('assets\\images\\bullet_1.png')
+bullet_1 = pygame.transform.scale(bullet_1, (50, 48))
+bullet_2 = pygame.image.load('assets\\images\\bullet_2.png')
+bullet_2 = pygame.transform.scale(bullet_2, (50, 48))
+bullet_3 = pygame.image.load('assets\\images\\bullet_3.png')
+bullet_3 = pygame.transform.scale(bullet_3, (50, 48))
+bullet_4 = pygame.image.load('assets\\images\\bullet_4.png')
+bullet_4 = pygame.transform.scale(bullet_4, (50, 48))
+bullet_image_list = [bullet_1, bullet_2, bullet_3, bullet_4]
 
 # text
 text_font = pygame.font.Font("assets\\fonts\\Determination Sans.otf", 50)
@@ -150,9 +171,13 @@ class TextButton():
             screen.blit(self.hovering_text, self.pos)
 
 class Heart(pygame.sprite.Sprite):
-    def __init__(self, current_health, maximum_health):
+    def __init__(self, current_health, maximum_health, heart_color):
         super().__init__()
-        self.image = pygame.image.load('assets\\images\\red_soul.webp')
+        self.heart_color = heart_color
+        if self.heart_color == "red":
+            self.image = red_soul
+        elif self.heart_color == "green":
+            self.image = green_soul
         self.rect = self.image.get_rect()
         self.current_health = current_health
         self.maximum_health = maximum_health
@@ -161,6 +186,11 @@ class Heart(pygame.sprite.Sprite):
         
     def update(self):
         self.healthbar()
+        
+    def draw(self, pos_x, pos_y):
+        self.rect.x = pos_x
+        self.rect.y = pos_y
+        screen.blit(self.image, (self.rect.x, self.rect.y))
     
     def damage(self, amount):
         if self.current_health > 0:
@@ -201,6 +231,97 @@ class UndyneHealth():
         pygame.draw.rect(screen, (255, 0, 0), (pos_x, pos_y, self.health_bar_length, height))
         pygame.draw.rect(screen, (255, 255, 64), (pos_x, pos_y, self.current_health / self.health_ratio, height))
     
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, direction, speed, speed_multiplier):
+        super().__init__()
+        global bullet_image_list
+        self.direction = direction
+        self.image = bullet_image_list[self.direction]
+        self.rect = self.image.get_rect(center = (pos_x, pos_y))
+        self.speed = speed
+        self.speed_multiplier = speed_multiplier
+        
+    def update(self):
+        if self.direction == 0:
+            self.rect.y -= round(self.speed * self.speed_multiplier)
+        elif self.direction == 1:
+            self.rect.y += round(self.speed * self.speed_multiplier)
+        elif self.direction == 2:
+            self.rect.x += round(self.speed * self.speed_multiplier)
+        elif self.direction == 3:
+            self.rect.x -= round(self.speed * self.speed_multiplier)
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+
+class Shield(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        global up_active, down_active, left_active, right_active
+        self.up_active = up_active
+        self.down_active = down_active
+        self.left_active = left_active
+        self.right_active = right_active
+        
+    def update(self):
+        if self.up_active:
+            pygame.draw.rect(screen, WHITE, pygame.Rect(575, 475, 100, 5))
+            self.rect = pygame.Rect(575, 475, 100, 5)
+        elif self.down_active:
+            pygame.draw.rect(screen, WHITE, pygame.Rect(575, 575, 100, 5))
+            self.rect = pygame.Rect(575, 575, 100, 5)
+        elif self.left_active:
+            pygame.draw.rect(screen, WHITE, pygame.Rect(575, 475, 5, 100))
+            self.rect = pygame.Rect(575, 475, 5, 100)
+        elif self.right_active:
+            pygame.draw.rect(screen, WHITE, pygame.Rect(675, 475, 5, 100))
+            self.rect = pygame.Rect(675, 475, 5, 100)
+            
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                
+                if event.key == pygame.K_UP:
+                    if self.right_active:
+                        self.up_active = True
+                        self.right_active = False
+                    elif self.down_active:
+                        self.up_active = True
+                        self.down_active = False
+                    elif self.left_active:
+                        self.up_active = True
+                        self.left_active = False
+                        
+                if event.key == pygame.K_DOWN:
+                    if self.right_active:
+                        self.down_active = True
+                        self.right_active = False
+                    elif self.up_active:
+                        self.down_active = True
+                        self.up_active = False
+                    elif self.left_active:
+                        self.down_active = True
+                        self.left_active = False
+                
+                if event.key == pygame.K_LEFT:
+                    if self.right_active:
+                        self.left_active = True
+                        self.right_active = False
+                    elif self.down_active:
+                        self.left_active = True
+                        self.down_active = False
+                    elif self.up_active:
+                        self.left_active = True
+                        self.up_active = False
+                        
+                if event.key == pygame.K_RIGHT:
+                    if self.left_active:
+                        self.right_active = True
+                        self.left_active = False
+                    elif self.down_active:
+                        self.right_active = True
+                        self.down_active = False
+                    elif self.up_active:
+                        self.right_active = True
+                        self.up_active = False
+
 # objects
 
 damage_font = pygame.font.Font("assets\\fonts\\hachicro.ttf", 80)
@@ -222,6 +343,8 @@ fight_btn = Button(fight_img, active_fight_img, (30, 876), True)
 act_btn = Button(act_img, active_act_img, (363, 876), False)
 item_btn = Button(item_img, active_item_img, (683, 876), False)
 mercy_btn = Button(mercy_img, active_mercy_img, (1003, 876), False)
+
+bullet_group = pygame.sprite.Group()
 
 def buttonupdates():
     global default, fighting, acting, iteming, mercying
@@ -542,8 +665,9 @@ def mercybuttonupdates():
                 mercying = False
                 default = True
 
-def attackscreen():
-    global events, target_img, bar_x, attack_power, attacked, last_keypress, attack_damage, strike_counter
+def fightscreen():
+    global events, target_img, bar_x, attack_power, attacked, last_keypress, attack_damage, strike_counter, \
+            attack_stage, getting_attacked, fight_selected
     
     screen.blit(target_img, (40, 510))
     if bar_x < 1200:
@@ -554,6 +678,9 @@ def attackscreen():
                 attack_power += 1
             else:
                 attack_power -= 1
+    else:
+        attack_power = 0
+        attacked = True
     
     if attacked == False:
         bar_x += 15
@@ -567,11 +694,17 @@ def attackscreen():
         damage_text_rect = damage_text.get_rect(topleft = (580, 280))
         screen.blit(damage_text, damage_text_rect)
         undyne_health.health_ratio = undyne_health.maximum_health / undyne_health.health_bar_length
+        
         if strike_counter <= 22:
             strike_animation()
         else:
-            # actual fight here
-            pass
+            attack_stage += 1
+            getting_attacked = True
+            fight_selected = False
+            bar_x = 30
+            attack_power = 0
+            strike_counter = 0
+            attacked = False
         
     for event in events:
         if event.type == pygame.KEYDOWN:
@@ -579,10 +712,10 @@ def attackscreen():
             if event.key == pygame.K_z and last_keypress >= 2:
                 
                 last_keypress = 0
-                attacked = True
                 attack_damage = attack_power * 5
                 undyne_health.damage(attack_damage)
-
+                attacked = True
+                
 def strike_animation():
     global strike1, strike2, strike3, strike4, strike5, strike6, strike_counter
     strike_counter += 0.25
@@ -600,7 +733,8 @@ def strike_animation():
         screen.blit(strike6, (600, 380))
     
 def check():
-    global undyne_check1, undyne_check1_rect, undyne_check2, undyne_check2_rect, events, checked, last_keypress, acting
+    global undyne_check1, undyne_check1_rect, undyne_check2, undyne_check2_rect, events, checked, last_keypress, acting, \
+            attack_stage, getting_attacked
     screen.blit(undyne_check1, undyne_check1_rect)
     screen.blit(undyne_check2, undyne_check2_rect)
     last_keypress += 1
@@ -611,10 +745,13 @@ def check():
                 last_keypress = 0
                 acting = False
                 checked = False
+                attack_stage += 1
+                getting_attacked = True
 
 def snowpieceitemconsume():
     global snowpiece_item_consume1, snowpiece_item_consume1_rect, snowpiece_item_consume2, \
-            snowpiece_item_consume2_rect, events, snowpiece_consumed, last_keypress, iteming
+            snowpiece_item_consume2_rect, events, snowpiece_consumed, last_keypress, iteming, \
+            attack_stage, getting_attacked
     
     screen.blit(snowpiece_item_consume1, snowpiece_item_consume1_rect)
     screen.blit(snowpiece_item_consume2, snowpiece_item_consume2_rect)
@@ -626,10 +763,13 @@ def snowpieceitemconsume():
                 last_keypress = 0
                 iteming = False
                 snowpiece_consumed = False
+                attack_stage += 1
+                getting_attacked = True
 
 def cinnabunitemconsume():
     global cinnabun_item_consume1, cinnabun_item_consume1_rect, cinnabun_item_consume2, \
-            cinnabun_item_consume2_rect, events, cinnabun_consumed, last_keypress, iteming
+            cinnabun_item_consume2_rect, events, cinnabun_consumed, last_keypress, iteming, \
+            attack_stage, getting_attacked
     
     screen.blit(cinnabun_item_consume1, cinnabun_item_consume1_rect)
     screen.blit(cinnabun_item_consume2, cinnabun_item_consume2_rect)
@@ -641,12 +781,14 @@ def cinnabunitemconsume():
                 last_keypress = 0
                 iteming = False
                 cinnabun_consumed = False
+                attack_stage += 1
+                getting_attacked = True
 
 def mercyresult():
     global mercy_success, mercy_fail, last_keypress, events, mercy_fail_text, \
             mercy_fail_text_rect, mercy_success_text, mercy_success_text_rect, \
             mercying, mercy_fail_text2, mercy_fail_text2_rect, mercy_success_text2, \
-            mercy_success_text2_rect
+            mercy_success_text2_rect, attack_stage, getting_attacked
             
     if mercy_success:
         # make attacks slower
@@ -667,20 +809,26 @@ def mercyresult():
                 mercying = False
                 mercy_fail = False
                 mercy_success = False
+                attack_stage += 1
+                getting_attacked = True
 
 def challenge():
     global events, challenged, last_keypress, acting, undyne_challenge_text, undyne_challenge_text_rect, \
             first_challenge_text, first_challenge_text_rect, second_challenge_text, second_challenge_text_rect, \
-            third_challenge_text, third_challenge_text_rect, challenge_stage
+            third_challenge_text, third_challenge_text_rect, challenge_stage, attack_stage, getting_attacked, \
+            speed_multiplier
     
     screen.blit(undyne_challenge_text, undyne_challenge_text_rect)
     # make attacks faster
     if challenge_stage == 1:
         screen.blit(first_challenge_text, first_challenge_text_rect)
+        speed_multiplier += 0.2
     if challenge_stage == 2:
         screen.blit(second_challenge_text, second_challenge_text_rect)
+        speed_multiplier += 0.2
     if challenge_stage == 3:
         screen.blit(third_challenge_text, third_challenge_text_rect)
+        speed_multiplier += 0.2
     
     last_keypress += 1
     
@@ -691,18 +839,21 @@ def challenge():
                 last_keypress = 0
                 acting = False
                 challenged = False
+                attack_stage += 1
+                getting_attacked = True
     
 def plead():
     global events, last_keypress, acting, pleaded, plead_success, plead_fail, \
             plead_fail_text, plead_fail_text_rect, plead_success_text, \
             plead_success_text_rect, plead_fail_text2, plead_fail_text2_rect, \
             plead_success_text2, plead_fail_text2_rect, plead_success_text3, \
-            plead_success_text3_rect
+            plead_success_text3_rect, attack_stage, getting_attacked, speed_multiplier
     
     if plead_success:
         screen.blit(plead_success_text, plead_success_text_rect)
         screen.blit(plead_success_text2, plead_success_text2_rect)
         screen.blit(plead_success_text3, plead_success_text3_rect)
+        speed_multiplier -= 0.2
     
     if plead_fail:
         screen.blit(plead_fail_text, plead_fail_text_rect)
@@ -719,14 +870,80 @@ def plead():
                 pleaded = False
                 plead_fail = False
                 plead_success = False
+                attack_stage += 1
+                getting_attacked = True
     
+def undyne_fight():
+    global attack_stage, events, player, up_active, down_active, \
+        left_active, right_active, bullet_group, invincibility, player_shield
+            
+    player.heart_color = "green"
+    pygame.draw.rect(screen, WHITE, pygame.Rect(550, 450, 150, 150), 7)
+    player.draw(613, 510)
+    pygame.draw.circle(screen, (32, 90, 33), (625, 525), 60, 3)
+    player_shield.update()
+
+    invincibility += 1
     
+    bullet_group.update()
     
+    player_hit = pygame.sprite.spritecollide(player, bullet_group, True)
+    pygame.sprite.spritecollide(player_shield, bullet_group, True)
+
+    if player_hit and (invincibility > 4):
+        player_hit = None
+        player.damage(5)
+        invincibility = 0
+    
+    if attack_stage == 1:
+        attack_1()
+
+def attack_finished():
+    global attack_counter, attack_delay, speed_multiplier, \
+    getting_attacked, up_active, down_active, left_active, right_active, \
+    invincibility, fight_btn, default, dialogue_generated, dialogue_generated_rect, \
+    attack_stage
+    
+    getting_attacked = False
+    up_active = True
+    down_active = False
+    left_active = False
+    right_active = False
+    invincibility = 0
+    attack_counter = 0
+    fight_btn.active = True
+    default = True
+    
+    if player.current_health <= 30:
+        dialogue_stage = "low hp"
+    elif attack_stage >= 1 and attack_stage <= 5: # 5 is a random number do fix
+        dialogue_stage = "neutral"
+    elif attack_stage >= 5:
+        dialogue_stage = "late"
+    
+    dialogue_generated = text_font.render(dialogue_gen(dialogue_stage), False, WHITE)
+    dialogue_generated_rect = dialogue_generated.get_rect(topleft = (60, 530))
+
+def attack_1():
+    global bullet_group, attack_counter, attack_delay, speed_multiplier
+
+    attack_counter += 1
+
+    if attack_counter == attack_delay:
+        bullet_group.add(Bullet(630, 100, 1, 3, speed_multiplier))
+    elif attack_counter == attack_delay * 2:
+        bullet_group.add(Bullet(630, 100, 1, 3, speed_multiplier))
+    elif attack_counter == attack_delay * 3:
+        bullet_group.add(Bullet(630, 100, 1, 3, speed_multiplier))
+    
+    if len(bullet_group) == 0 and attack_counter > attack_delay:
+        attack_finished()
+        
 def boss_fight():
     pygame.display.set_caption('Choose.')
     global events
     global player, undyne_health
-    player = Heart(76, 76)
+    player = Heart(76, 76, "red")
     undyne_health = UndyneHealth(1500, 1500)
     
     char_font = pygame.font.Font("assets\\fonts\\Determination Mono.otf", 40)
@@ -751,7 +968,10 @@ def boss_fight():
             snowpiece_consumed, cinnabun_consumed, default, last_keypress, \
             checked, fight_selected, bar_x, attack_power, attacked, attack_damage, \
             strike_counter, mercy_stage, mercy_success, mercy_fail, challenge_stage, \
-            challenged, pleaded, plead_fail, plead_success
+            challenged, pleaded, plead_fail, plead_success, attack_stage, getting_attacked, \
+            undyne_image_dark, up_active, down_active, left_active, right_active, invincibility, \
+            attack_delay, attack_counter, speed_multiplier, dialogue_generated, dialogue_generated_rect, \
+            player_shield
     
     default = True
     fighting = False
@@ -776,13 +996,30 @@ def boss_fight():
     pleaded = False
     plead_fail = False
     plead_success = False
+    attack_stage = 0
+    getting_attacked = False
+    up_active = True
+    down_active = False
+    left_active = False
+    right_active = False
+    invincibility = 0
+    attack_delay = 60
+    attack_counter = 0
+    speed_multiplier = 1
+    dialogue_generated = ""
+    dialogue_generated_rect = ""
+    player_shield = Shield()
     
     while True:
         screen.fill((0, 0, 0))
         screen.blit(chara_text, chara_text_rect)
         screen.blit(lvl_text, lvl_text_rect)
         if default:
-            screen.blit(undyne_attacks, undyne_attacks_rect)
+            if attack_stage == 0:
+                screen.blit(undyne_attacks, undyne_attacks_rect)
+            else:
+                screen.blit(dialogue_generated, dialogue_generated_rect)
+        
         screen.blit(hp_text, hp_text_rect)
         screen.blit(kr_text, kr_text_rect)
         
@@ -790,8 +1027,12 @@ def boss_fight():
         health_ratio_text_rect = health_ratio_text.get_rect(topleft = (875, 816))
         
         screen.blit(health_ratio_text, health_ratio_text_rect)
-        screen.blit(undyne_image, (430, 10))
-        pygame.draw.rect(screen, WHITE, pygame.Rect(30, 500, 1193, 300), 5)
+        if getting_attacked == False:
+            pygame.draw.rect(screen, WHITE, pygame.Rect(30, 500, 1193, 300), 5)
+            screen.blit(undyne_image, (430, 10))
+        else:
+            screen.blit(undyne_image_dark, (430, 10))
+            undyne_fight()
 
         buttonupdates()
         if fighting and fight_selected == False:
@@ -805,8 +1046,8 @@ def boss_fight():
         if mercying and (mercy_success == False and mercy_fail == False):
             mercybuttonupdates()
         
-        if fight_selected:
-            attackscreen()
+        if fight_selected and not getting_attacked:
+            fightscreen()
         if checked:
             check()
         if challenged:
@@ -820,7 +1061,6 @@ def boss_fight():
         if mercy_success or mercy_fail:
             mercyresult()
         
-        # player.draw(screen)
         player.update()
         
         events = pygame.event.get()
