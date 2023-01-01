@@ -236,19 +236,19 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
         global bullet_image_list
         self.direction = direction
-        self.image = bullet_image_list[self.direction]
+        self.image = bullet_image_list[self.direction - 1]
         self.rect = self.image.get_rect(center = (pos_x, pos_y))
         self.speed = speed
         self.speed_multiplier = speed_multiplier
         
     def update(self):
-        if self.direction == 0:
+        if self.direction == 2:
             self.rect.y -= round(self.speed * self.speed_multiplier)
         elif self.direction == 1:
             self.rect.y += round(self.speed * self.speed_multiplier)
-        elif self.direction == 2:
-            self.rect.x += round(self.speed * self.speed_multiplier)
         elif self.direction == 3:
+            self.rect.x += round(self.speed * self.speed_multiplier)
+        elif self.direction == 4:
             self.rect.x -= round(self.speed * self.speed_multiplier)
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
@@ -819,16 +819,12 @@ def challenge():
             speed_multiplier
     
     screen.blit(undyne_challenge_text, undyne_challenge_text_rect)
-    # make attacks faster
     if challenge_stage == 1:
         screen.blit(first_challenge_text, first_challenge_text_rect)
-        speed_multiplier += 0.2
     if challenge_stage == 2:
         screen.blit(second_challenge_text, second_challenge_text_rect)
-        speed_multiplier += 0.2
     if challenge_stage == 3:
         screen.blit(third_challenge_text, third_challenge_text_rect)
-        speed_multiplier += 0.2
     
     last_keypress += 1
     
@@ -841,6 +837,7 @@ def challenge():
                 challenged = False
                 attack_stage += 1
                 getting_attacked = True
+                speed_multiplier += 0.4
     
 def plead():
     global events, last_keypress, acting, pleaded, plead_success, plead_fail, \
@@ -853,7 +850,6 @@ def plead():
         screen.blit(plead_success_text, plead_success_text_rect)
         screen.blit(plead_success_text2, plead_success_text2_rect)
         screen.blit(plead_success_text3, plead_success_text3_rect)
-        speed_multiplier -= 0.2
     
     if plead_fail:
         screen.blit(plead_fail_text, plead_fail_text_rect)
@@ -865,6 +861,8 @@ def plead():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
                 # actual fight here
+                if plead_success:
+                    speed_multiplier -= 0.2
                 last_keypress = 0
                 acting = False
                 pleaded = False
@@ -875,7 +873,8 @@ def plead():
     
 def undyne_fight():
     global attack_stage, events, player, up_active, down_active, \
-        left_active, right_active, bullet_group, invincibility, player_shield
+        left_active, right_active, bullet_group, invincibility, player_shield, \
+        attack_counter, attack_delay, events
             
     player.heart_color = "green"
     pygame.draw.rect(screen, WHITE, pygame.Rect(550, 450, 150, 150), 7)
@@ -894,9 +893,20 @@ def undyne_fight():
         player_hit = None
         player.damage(5)
         invincibility = 0
+        
+    if len(bullet_group) == 0 and attack_counter > attack_delay:
+        attack_finished()
+        
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSLASH:
+                bullet_group.empty()
+                attack_finished()
     
     if attack_stage == 1:
         attack_1()
+    elif attack_stage == 2:
+        attack_2()
 
 def attack_finished():
     global attack_counter, attack_delay, speed_multiplier, \
@@ -923,21 +933,36 @@ def attack_finished():
     
     dialogue_generated = text_font.render(dialogue_gen(dialogue_stage), False, WHITE)
     dialogue_generated_rect = dialogue_generated.get_rect(topleft = (60, 530))
-
+    
 def attack_1():
     global bullet_group, attack_counter, attack_delay, speed_multiplier
 
     attack_counter += 1
 
     if attack_counter == attack_delay:
-        bullet_group.add(Bullet(630, 100, 1, 3, speed_multiplier))
+        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
     elif attack_counter == attack_delay * 2:
-        bullet_group.add(Bullet(630, 100, 1, 3, speed_multiplier))
+        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
     elif attack_counter == attack_delay * 3:
-        bullet_group.add(Bullet(630, 100, 1, 3, speed_multiplier))
+        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+     
+def attack_2():
+    global bullet_group, attack_counter, attack_delay, speed_multiplier
+
+    attack_counter += 1
     
-    if len(bullet_group) == 0 and attack_counter > attack_delay:
-        attack_finished()
+    if attack_counter == attack_delay:
+        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 2:
+        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 3:
+        bullet_group.add(Bullet(100, 520, 3, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 4:
+        bullet_group.add(Bullet(100, 520, 3, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 5:
+        bullet_group.add(Bullet(1153, 520, 4, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(1153, 520, 4, 4, speed_multiplier))
         
 def boss_fight():
     pygame.display.set_caption('Choose.')
@@ -1003,7 +1028,7 @@ def boss_fight():
     left_active = False
     right_active = False
     invincibility = 0
-    attack_delay = 60
+    attack_delay = 30
     attack_counter = 0
     speed_multiplier = 1
     dialogue_generated = ""
