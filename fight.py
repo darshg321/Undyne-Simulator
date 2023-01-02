@@ -1,11 +1,3 @@
-# check how much damage attacks do
-# make fight screen
-# make challenge and plead stages (can do this with variable that increments by 1 for each stage and then random dialogue of that stage)
-# make spare stages with same thing
-# make undynehealth class into just undyne
-# make undyne attacks "less extreme" by changing the delay between bullets / bullet speed
-# change invincibility to 0 after attacks are done
-
 import pygame
 from dialogue import dialogue_gen
 from random import randint
@@ -232,12 +224,24 @@ class UndyneHealth():
         pygame.draw.rect(screen, (255, 255, 64), (pos_x, pos_y, self.current_health / self.health_ratio, height))
     
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y, direction, speed, speed_multiplier):
+    def __init__(self, direction, speed, speed_multiplier):
         super().__init__()
         global bullet_image_list
         self.direction = direction
         self.image = bullet_image_list[self.direction - 1]
-        self.rect = self.image.get_rect(center = (pos_x, pos_y))
+        if self.direction == 1:
+            self.pos_x = 630
+            self.pos_y = 100
+        elif self.direction == 2:
+            self.pos_x = 630
+            self.pos_y = 890
+        elif self.direction == 3:
+            self.pos_x = 100
+            self.pos_y = 520
+        elif self.direction == 4:
+            self.pos_x = 1153
+            self.pos_y = 520
+        self.rect = self.image.get_rect(center = (self.pos_x, self.pos_y))
         self.speed = speed
         self.speed_multiplier = speed_multiplier
         
@@ -651,8 +655,9 @@ def mercybuttonupdates():
                 
                 if spare_text.active:
                     last_keypress = 0
-                    # 5 is a random number
-                    if mercy_stage >= 5:
+                    # 10 is a random number
+                    # decide this later
+                    if mercy_stage >= 10:
                         mercy_btn.active = False
                         mercy_success = True
                     else:
@@ -741,7 +746,6 @@ def check():
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
-                # actual fight here
                 last_keypress = 0
                 acting = False
                 checked = False
@@ -759,7 +763,6 @@ def snowpieceitemconsume():
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
-                # actual fight here
                 last_keypress = 0
                 iteming = False
                 snowpiece_consumed = False
@@ -777,7 +780,6 @@ def cinnabunitemconsume():
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
-                # call actual bossfight here
                 last_keypress = 0
                 iteming = False
                 cinnabun_consumed = False
@@ -804,7 +806,6 @@ def mercyresult():
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
-                # actual fight here
                 last_keypress = 0
                 mercying = False
                 mercy_fail = False
@@ -831,7 +832,6 @@ def challenge():
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
-                # actual fight here
                 last_keypress = 0
                 acting = False
                 challenged = False
@@ -860,7 +860,6 @@ def plead():
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z and last_keypress >= 20:
-                # actual fight here
                 if plead_success:
                     speed_multiplier -= 0.2
                 last_keypress = 0
@@ -872,9 +871,11 @@ def plead():
                 getting_attacked = True
     
 def undyne_fight():
-    global attack_stage, events, player, up_active, down_active, \
-        left_active, right_active, bullet_group, invincibility, player_shield, \
-        attack_counter, attack_delay, events
+    global attack_stage, player, bullet_group, invincibility, player_shield, \
+        attack_counter, attack_delay
+        
+    # remove this
+    global getting_attacked, events
             
     player.heart_color = "green"
     pygame.draw.rect(screen, WHITE, pygame.Rect(550, 450, 150, 150), 7)
@@ -897,6 +898,7 @@ def undyne_fight():
     if len(bullet_group) == 0 and attack_counter > attack_delay:
         attack_finished()
         
+    # remove this
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSLASH:
@@ -907,6 +909,12 @@ def undyne_fight():
         attack_1()
     elif attack_stage == 2:
         attack_2()
+    elif attack_stage == 3:
+        attack_3()
+    elif attack_stage == 4:
+        attack_4()
+    elif attack_stage == 5:
+        attack_5()
 
 def attack_finished():
     global attack_counter, attack_delay, speed_multiplier, \
@@ -928,42 +936,123 @@ def attack_finished():
         dialogue_stage = "low hp"
     elif attack_stage >= 1 and attack_stage <= 5: # 5 is a random number do fix
         dialogue_stage = "neutral"
-    elif attack_stage >= 5:
+    elif attack_stage > 5:
         dialogue_stage = "late"
     
     dialogue_generated = text_font.render(dialogue_gen(dialogue_stage), False, WHITE)
     dialogue_generated_rect = dialogue_generated.get_rect(topleft = (60, 530))
     
 def attack_1():
-    global bullet_group, attack_counter, attack_delay, speed_multiplier
+    global bullet_group, attack_counter, attack_delay, speed_multiplier, \
+            up, down, left, right
 
     attack_counter += 1
 
     if attack_counter == attack_delay:
-        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
     elif attack_counter == attack_delay * 2:
-        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
     elif attack_counter == attack_delay * 3:
-        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
      
 def attack_2():
-    global bullet_group, attack_counter, attack_delay, speed_multiplier
+    global bullet_group, attack_counter, attack_delay, speed_multiplier, \
+            up, down, left, right
 
     attack_counter += 1
     
     if attack_counter == attack_delay:
-        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
     elif attack_counter == attack_delay * 2:
-        bullet_group.add(Bullet(630, 100, 1, 4, speed_multiplier))
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
     elif attack_counter == attack_delay * 3:
-        bullet_group.add(Bullet(100, 520, 3, 4, speed_multiplier))
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
     elif attack_counter == attack_delay * 4:
-        bullet_group.add(Bullet(100, 520, 3, 4, speed_multiplier))
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
     elif attack_counter == attack_delay * 5:
-        bullet_group.add(Bullet(1153, 520, 4, 4, speed_multiplier))
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
     elif attack_counter == attack_delay * 6:
-        bullet_group.add(Bullet(1153, 520, 4, 4, speed_multiplier))
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
         
+def attack_3():
+    global bullet_group, attack_counter, attack_delay, speed_multiplier, \
+            up, down, left, right
+
+    attack_counter += 1
+    
+    if attack_counter == attack_delay:
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 2:
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 3:
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 4:
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 5:
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(left, 3, speed_multiplier))
+    elif attack_counter == attack_delay * 7:
+        bullet_group.add(Bullet(down, 3, speed_multiplier))
+        
+def attack_4():
+    global bullet_group, attack_counter, attack_delay, speed_multiplier, \
+            up, down, left, right
+
+    attack_counter += 1
+    # maybe change this to be better some are too fast
+    if attack_counter == attack_delay:
+        bullet_group.add(Bullet(up, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 2:
+        bullet_group.add(Bullet(right, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 3:
+        bullet_group.add(Bullet(down, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 4:
+        bullet_group.add(Bullet(left, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 5:
+        bullet_group.add(Bullet(up, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(right, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(down, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 7:
+        bullet_group.add(Bullet(left, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 8:
+        bullet_group.add(Bullet(up, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 9:
+        bullet_group.add(Bullet(up, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 10:
+        bullet_group.add(Bullet(up, 6, speed_multiplier))
+    elif attack_counter == attack_delay * 11:
+        bullet_group.add(Bullet(up, 6, speed_multiplier))
+        
+def attack_5():
+    global bullet_group, attack_counter, attack_delay, speed_multiplier, \
+            up, down, left, right
+
+    attack_counter += 1
+    # maybe change this
+    if attack_counter == attack_delay:
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 2:
+        bullet_group.add(Bullet(up, 5, speed_multiplier))
+    elif attack_counter == attack_delay * 3:
+        bullet_group.add(Bullet(up, 5, speed_multiplier))
+    elif attack_counter == attack_delay * 4:
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 5:
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(left, 5, speed_multiplier))
+    elif attack_counter == attack_delay * 7:
+        bullet_group.add(Bullet(up, 5, speed_multiplier))
+    elif attack_counter == attack_delay * 8:
+        bullet_group.add(Bullet(down, 5, speed_multiplier))
+
 def boss_fight():
     pygame.display.set_caption('Choose.')
     global events
@@ -996,7 +1085,7 @@ def boss_fight():
             challenged, pleaded, plead_fail, plead_success, attack_stage, getting_attacked, \
             undyne_image_dark, up_active, down_active, left_active, right_active, invincibility, \
             attack_delay, attack_counter, speed_multiplier, dialogue_generated, dialogue_generated_rect, \
-            player_shield
+            player_shield, up, down, left, right
     
     default = True
     fighting = False
@@ -1034,6 +1123,10 @@ def boss_fight():
     dialogue_generated = ""
     dialogue_generated_rect = ""
     player_shield = Shield()
+    up = 1
+    down = 2
+    left = 3
+    right = 4
     
     while True:
         screen.fill((0, 0, 0))
