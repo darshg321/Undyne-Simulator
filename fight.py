@@ -487,7 +487,7 @@ def actbuttonupdates():
                 if challenge_text.active:
                     challenged = True
                     last_keypress = 0
-                    if challenge_stage <= 3:
+                    if challenge_stage < 3:
                         challenge_stage += 1
                     act_btn.active = False
                 
@@ -837,7 +837,8 @@ def challenge():
                 challenged = False
                 attack_stage += 1
                 getting_attacked = True
-                speed_multiplier += 0.4
+                if challenge_stage <= 3:
+                    speed_multiplier += 0.6
     
 def plead():
     global events, last_keypress, acting, pleaded, plead_success, plead_fail, \
@@ -894,16 +895,15 @@ def undyne_fight():
         player_hit = None
         player.damage(5)
         invincibility = 0
-        
-    if len(bullet_group) == 0 and attack_counter > attack_delay:
-        attack_finished()
-        
     # remove this
     for event in events:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSLASH:
                 bullet_group.empty()
                 attack_finished()
+                
+    if len(bullet_group) == 0 and attack_counter > attack_delay * 6:
+        attack_finished()
     
     if attack_stage == 1:
         attack_1()
