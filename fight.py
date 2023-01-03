@@ -876,7 +876,7 @@ def undyne_fight():
         attack_counter, attack_delay
         
     # remove this
-    global getting_attacked, events
+    # global getting_attacked, events
             
     player.heart_color = "green"
     pygame.draw.rect(screen, WHITE, pygame.Rect(550, 450, 150, 150), 7)
@@ -896,11 +896,11 @@ def undyne_fight():
         player.damage(5)
         invincibility = 0
     # remove this
-    for event in events:
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSLASH:
-                bullet_group.empty()
-                attack_finished()
+    # for event in events:
+    #     if event.type == pygame.KEYDOWN:
+    #         if event.key == pygame.K_BACKSLASH:
+    #             bullet_group.empty()
+    #             attack_finished()
                 
     if len(bullet_group) == 0 and attack_counter > attack_delay * 6:
         attack_finished()
@@ -915,6 +915,8 @@ def undyne_fight():
         attack_4()
     elif attack_stage == 5:
         attack_5()
+    elif attack_stage == 6:
+        attack_6()
 
 def attack_finished():
     global attack_counter, attack_delay, speed_multiplier, \
@@ -934,7 +936,7 @@ def attack_finished():
     
     if player.current_health <= 30:
         dialogue_stage = "low hp"
-    elif attack_stage >= 1 and attack_stage <= 5: # 5 is a random number do fix
+    elif attack_stage >= 1 and attack_stage < 6:
         dialogue_stage = "neutral"
     elif attack_stage > 5:
         dialogue_stage = "late"
@@ -1052,6 +1054,35 @@ def attack_5():
         bullet_group.add(Bullet(up, 5, speed_multiplier))
     elif attack_counter == attack_delay * 8:
         bullet_group.add(Bullet(down, 5, speed_multiplier))
+
+def attack_6():
+    global bullet_group, attack_counter, attack_delay, speed_multiplier, \
+            up, down, left, right
+
+    attack_counter += 1
+    # maybe change this
+    if attack_counter == attack_delay:
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 2:
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 3:
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 4:
+        bullet_group.add(Bullet(down, 7, speed_multiplier))
+    elif attack_counter == attack_delay * 5:
+        bullet_group.add(Bullet(left, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 6:
+        bullet_group.add(Bullet(up, 7, speed_multiplier))
+    elif attack_counter == attack_delay * 7:
+        bullet_group.add(Bullet(right, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 8:
+        bullet_group.add(Bullet(down, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 9:
+        bullet_group.add(Bullet(down, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 10:
+        bullet_group.add(Bullet(up, 4, speed_multiplier))
+    elif attack_counter == attack_delay * 11:
+        bullet_group.add(Bullet(right, 7, speed_multiplier))
 
 def boss_fight():
     pygame.display.set_caption('Choose.')
